@@ -63,22 +63,73 @@ resource "aws_iam_role" "apiRole" {
 }
 POLICY
 }
+resource "aws_iam_policy" "lambda_logging" {
+  name        = "lambda_logging"
+  path        = "/"
+  description = "IAM policy for logging from a lambda"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+resource "aws_iam_role_policy_attachment" "cache_logs" {
+  role       = aws_iam_role.apiRole.name
+  policy_arn = aws_iam_policy.lambda_logging.arn
+}
+resource "aws_iam_role_policy_attachment" "api_logs" {
+  role       = aws_iam_role.cacheRole.name
+  policy_arn = aws_iam_policy.lambda_logging.arn
+}
+resource "aws_s3_bucket" "deployment_bucket" {
+  bucket = "covidapideployment"
+  acl    = "private"
+  versioning {
+    enabled = true
+  }
+}
+resource "aws_s3_bucket_object" "cache_deployment" {
+  bucket = aws_s3_bucket.deployment_bucket.id
+  key    = "cache.zip"
+  source = "dist/cache.zip"
+}
 resource "aws_lambda_function" "covidCache" {
-  function_name    = "covidCache"
-  filename         = "dist/cache.zip"
-  handler          = "cache"
-  source_code_hash = filebase64("dist/cache.zip")
-  role             = "${aws_iam_role.cacheRole.arn}"
-  runtime          = "go1.x"
-  memory_size      = 128
-  timeout          = 1
+  function_name = "covidCache"
+  s3_bucket         = aws_s3_bucket.deployment_bucket.id
+  s3_key            = "cache.zip"
+  s3_object_version = aws_s3_bucket_object.cache_deployment.version_id
+  handler           = "cache"
+  # source_code_hash  = filebase64("dist/cache.zip")
+  role              = aws_iam_role.cacheRole.arn
+  runtime           = "go1.x"
+  memory_size       = 128
+  timeout           = 1
+}
+resource "aws_s3_bucket_object" "api_deployment" {
+  bucket = aws_s3_bucket.deployment_bucket.id
+  key    = "api.zip"
+  source = "dist/api.zip"
 }
 resource "aws_lambda_function" "covidAPIv2" {
   function_name    = "covidAPIv2"
-  filename         = "dist/api.zip"
+  s3_bucket         = aws_s3_bucket.deployment_bucket.id
+  s3_key            = "api.zip"
+  s3_object_version = aws_s3_bucket_object.api_deployment.version_id
   handler          = "api"
-  source_code_hash = filebase64("dist/api.zip")
-  role             = "${aws_iam_role.apiRole.arn}"
+  # source_code_hash = filebase64("dist/api.zip")
+  role             = aws_iam_role.apiRole.arn
   runtime          = "go1.x"
   memory_size      = 128
   timeout          = 1
@@ -88,10 +139,10 @@ resource "aws_apigatewayv2_api" "covidAPI" {
   protocol_type = "HTTP"
 }
 resource "aws_apigatewayv2_integration" "base" {
-  api_id                 = "${aws_apigatewayv2_api.covidAPI.id}"
+  api_id                 = aws_apigatewayv2_api.covidAPI.id
   integration_type       = "AWS_PROXY"
   description            = "Lambda example"
   integration_method     = "POST"
-  integration_uri        = "${aws_lambda_function.covidAPIv2.invoke_arn}"
+  integration_uri        = aws_lambda_function.covidAPIv2.invoke_arn
   payload_format_version = "1.0"
 }
