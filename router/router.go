@@ -3,7 +3,7 @@ import (
 	"net/http"
 	"time"
 
-
+	"github.com/binarydud/covidapi/handlers"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/rs/zerolog"
@@ -38,6 +38,6 @@ func NewRouter(log zerolog.Logger) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Use(middleware.Timeout(60 * time.Second))
-	
+	r.Get("/health",handlers.HealthHandler)
 	return r
 }

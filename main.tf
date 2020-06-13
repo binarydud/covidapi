@@ -9,6 +9,9 @@ terraform {
 provider "aws" {
   region = "us-east-2"
 }
+
+data "aws_caller_identity" "current" {}
+
 resource "aws_dynamodb_table" "covid-state-table" {
   name         = "CovidState"
   billing_mode = "PAY_PER_REQUEST"
@@ -104,6 +107,7 @@ resource "aws_s3_bucket_object" "cache_deployment" {
   bucket = aws_s3_bucket.deployment_bucket.id
   key    = "cache.zip"
   source = "dist/cache.zip"
+  etag   = filemd5("dist/cache.zip")
 }
 resource "aws_lambda_function" "covidCache" {
   function_name     = "covidCache"
@@ -121,6 +125,7 @@ resource "aws_s3_bucket_object" "api_deployment" {
   bucket = aws_s3_bucket.deployment_bucket.id
   key    = "api.zip"
   source = "dist/api.zip"
+  etag   = filemd5("dist/api.zip")
 }
 resource "aws_lambda_function" "covidAPIv2" {
   function_name     = "covidAPIv2"
@@ -138,11 +143,55 @@ resource "aws_apigatewayv2_api" "covidAPI" {
   name          = "covid-api"
   protocol_type = "HTTP"
 }
+resource "aws_lambda_permission" "apigw_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.covidAPIv2.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:us-east-2:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.covidAPI.id}/*/$default"
+}
 resource "aws_apigatewayv2_integration" "base" {
   api_id                 = aws_apigatewayv2_api.covidAPI.id
   integration_type       = "AWS_PROXY"
   description            = "Lambda example"
   integration_method     = "POST"
+  passthrough_behavior   = "WHEN_NO_MATCH"
   integration_uri        = aws_lambda_function.covidAPIv2.invoke_arn
   payload_format_version = "1.0"
+}
+resource "aws_apigatewayv2_route" "default_route" {
+  api_id    = aws_apigatewayv2_api.covidAPI.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.base.id}"
+}
+resource "aws_apigatewayv2_stage" "default_stage" {
+  api_id      = aws_apigatewayv2_api.covidAPI.id
+  name        = "$default"
+  auto_deploy = true
+}
+resource "aws_apigatewayv2_domain_name" "covidapi" {
+  domain_name = "covidapi.dev.cloudadaptr.com"
+
+  domain_name_configuration {
+    certificate_arn = var.certificate
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+resource "aws_apigatewayv2_api_mapping" "apimapping" {
+  api_id      = aws_apigatewayv2_api.covidAPI.id
+  domain_name = aws_apigatewayv2_domain_name.covidapi.id
+  stage       = aws_apigatewayv2_stage.default_stage.id
+}
+
+resource "aws_route53_record" "api" {
+  name    = "covidapi.dev.cloudadaptr.com"
+  type    = "A"
+  zone_id = var.hosted_zone
+
+  alias {
+    evaluate_target_health = true
+    name                   = aws_apigatewayv2_domain_name.covidapi.domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.covidapi.domain_name_configuration[0].hosted_zone_id
+  }
 }
