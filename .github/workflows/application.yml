@@ -28,11 +28,16 @@ jobs:
       - name: Build
         run: make all
 
-      - name: Upload go binaries
+      - name: Upload api go binary
         uses: actions/upload-artifact@v1
         with:
-          name: lambdas
-          path: "*.zip"
+          name: api
+          path: api.zip
+      - name: Upload cache go binary
+        uses: actions/upload-artifact@v1
+        with:
+          name: cache
+          path: cache.zip
   terraform:
     needs: build
     name: "Terraform"
