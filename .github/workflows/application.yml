@@ -31,8 +31,8 @@ jobs:
       - name: Upload go binaries
         uses: actions/upload-artifact@v1
         with:
-          name: lambda
-          path: api.zip
+          name: lambdas
+          path: "*.zip"
   terraform:
     needs: build
     name: "Terraform"
