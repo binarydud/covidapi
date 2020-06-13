@@ -16,5 +16,5 @@ func main() {
 		Timestamp().
 		Logger()
 	r := router.NewRouter(log)
-	lambda.Start(pylon.HttpGatewayProxyEvent(r))
+	lambda.Start(pylon.GatewayProxyEvent(r))
 }
