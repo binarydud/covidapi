@@ -1,18 +1,18 @@
 terraform {
   backend "s3" {
-    bucket  = "atlas-terraform-state-dev"
-    key     = "covid-tf.state"
-    region  = "us-east-2"
+    bucket = "atlas-terraform-state-dev"
+    key    = "covid-tf.state"
+    region = "us-east-2"
   }
 }
 provider "aws" {
-  region  = "us-east-2"
+  region = "us-east-2"
 }
 resource "aws_dynamodb_table" "covid-state-table" {
-  name           = "CovidState"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "state"
-  range_key      = "date"
+  name         = "CovidState"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "state"
+  range_key    = "date"
   attribute {
     name = "state"
     type = "S"
@@ -23,9 +23,9 @@ resource "aws_dynamodb_table" "covid-state-table" {
   }
 }
 resource "aws_dynamodb_table" "covid-us-table" {
-  name           = "CovidUS"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "date"
+  name         = "CovidUS"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "date"
 
   attribute {
     name = "date"
