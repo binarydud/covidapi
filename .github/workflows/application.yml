@@ -28,16 +28,11 @@ jobs:
       - name: Build
         run: make all
 
-      - name: Upload api go binary
+      - name: Upload dist directory
         uses: actions/upload-artifact@v1
         with:
-          name: api
-          path: api.zip
-      - name: Upload cache go binary
-        uses: actions/upload-artifact@v1
-        with:
-          name: cache
-          path: cache.zip
+          name: dist
+          path: dist
   terraform:
     needs: build
     name: "Terraform"
@@ -52,10 +47,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Download api
+      - name: Download built artifacts
         uses: actions/download-artifact@v1
         with:
-          name: cache
+          name: dist
+      - shell: bash
+        run: ls -latr dist/
       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1

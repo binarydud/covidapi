@@ -49,9 +49,9 @@ POLICY
 }
 resource "aws_lambda_function" "covidCache" {
   function_name    = "covidCache"
-  filename         = "cache.zip"
+  filename         = "dist/cache.zip"
   handler          = "cache"
-  source_code_hash = "${base64sha256(file("cache.zip"))}"
+  source_code_hash = "${base64sha256(file("dist/cache.zip"))}"
   role             = "${aws_iam_role.cacheRole.arn}"
   runtime          = "go1.x"
   memory_size      = 128
