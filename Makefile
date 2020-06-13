@@ -1,13 +1,16 @@
+.PHONY: test
+test:
+	go test -v ./...
 api.zip: api
 	zip $@ $<
 
-api: api.go
-	GOOS=linux GOARCH=amd64 go build -o $@ api.go
+api: cmd/api/api.go
+	GOOS=linux GOARCH=amd64 go build -o $@ cmd/api/api.go
 
-processor.zip: processor
+cache.zip: cache
 	zip $@ $<
 
-processor: processor.go
-	GOOS=linux GOARCH=amd64 go build -o $@ processor.go
+cache: cmd/cache/cache.go
+	GOOS=linux GOARCH=amd64 go build -o $@ cmd/cache/cache.go
 
-all: processor.zip api.zip
+all: cache.zip api.zip
