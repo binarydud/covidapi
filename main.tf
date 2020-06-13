@@ -106,16 +106,16 @@ resource "aws_s3_bucket_object" "cache_deployment" {
   source = "dist/cache.zip"
 }
 resource "aws_lambda_function" "covidCache" {
-  function_name = "covidCache"
+  function_name     = "covidCache"
   s3_bucket         = aws_s3_bucket.deployment_bucket.id
   s3_key            = "cache.zip"
   s3_object_version = aws_s3_bucket_object.cache_deployment.version_id
   handler           = "cache"
   # source_code_hash  = filebase64("dist/cache.zip")
-  role              = aws_iam_role.cacheRole.arn
-  runtime           = "go1.x"
-  memory_size       = 128
-  timeout           = 1
+  role        = aws_iam_role.cacheRole.arn
+  runtime     = "go1.x"
+  memory_size = 128
+  timeout     = 1
 }
 resource "aws_s3_bucket_object" "api_deployment" {
   bucket = aws_s3_bucket.deployment_bucket.id
@@ -123,16 +123,16 @@ resource "aws_s3_bucket_object" "api_deployment" {
   source = "dist/api.zip"
 }
 resource "aws_lambda_function" "covidAPIv2" {
-  function_name    = "covidAPIv2"
+  function_name     = "covidAPIv2"
   s3_bucket         = aws_s3_bucket.deployment_bucket.id
   s3_key            = "api.zip"
   s3_object_version = aws_s3_bucket_object.api_deployment.version_id
-  handler          = "api"
+  handler           = "api"
   # source_code_hash = filebase64("dist/api.zip")
-  role             = aws_iam_role.apiRole.arn
-  runtime          = "go1.x"
-  memory_size      = 128
-  timeout          = 1
+  role        = aws_iam_role.apiRole.arn
+  runtime     = "go1.x"
+  memory_size = 128
+  timeout     = 1
 }
 resource "aws_apigatewayv2_api" "covidAPI" {
   name          = "covid-api"
