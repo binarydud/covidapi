@@ -24,3 +24,5 @@ cache: cmd/cache/cache.go
 all: dist cache.zip api.zip
 clean: 
 	rm -rf dist
+dev:
+	go run server/server.go
