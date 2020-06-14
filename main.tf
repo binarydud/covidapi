@@ -92,6 +92,8 @@ data "aws_iam_policy_document" "dynamoPut" {
   statement {
     actions = [
       "dynamodb:PutItem",
+      "dynamodb:Scan",
+      "dynamodb:Query"
     ]
 
     resources = [
@@ -103,19 +105,23 @@ data "aws_iam_policy_document" "dynamoPut" {
 resource "aws_iam_policy" "tablePolicy" {
   name   = "covidTablePolicy"
   path   = "/"
-  policy = "${data.aws_iam_policy_document.dynamoPut.json}"
+  policy = data.aws_iam_policy_document.dynamoPut.json
 }
 resource "aws_iam_role_policy_attachment" "cache_dynamo" {
   role       = aws_iam_role.cacheRole.name
   policy_arn = aws_iam_policy.tablePolicy.arn
 }
 resource "aws_iam_role_policy_attachment" "cache_logs" {
-  role       = aws_iam_role.apiRole.name
+  role       = aws_iam_role.cacheRole.name
   policy_arn = aws_iam_policy.lambda_logging.arn
 }
 resource "aws_iam_role_policy_attachment" "api_logs" {
-  role       = aws_iam_role.cacheRole.name
+  role       = aws_iam_role.apiRole.name
   policy_arn = aws_iam_policy.lambda_logging.arn
+}
+resource "aws_iam_role_policy_attachment" "api_dynamo" {
+  role       = aws_iam_role.apiRole.name
+  policy_arn = aws_iam_policy.tablePolicy.arn
 }
 resource "aws_s3_bucket" "deployment_bucket" {
   bucket = "covidapideployment"
