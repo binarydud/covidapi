@@ -169,6 +169,11 @@ resource "aws_lambda_function" "covidAPIv2" {
 resource "aws_apigatewayv2_api" "covidAPI" {
   name          = "covid-api"
   protocol_type = "HTTP"
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["*"]
+    allow_headers = ["*"]
+  }
 }
 resource "aws_lambda_permission" "apigw_lambda" {
   statement_id  = "AllowExecutionFromAPIGateway"
