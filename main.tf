@@ -163,8 +163,8 @@ resource "aws_lambda_function" "covidAPIv2" {
   # source_code_hash = filebase64("dist/api.zip")
   role        = aws_iam_role.apiRole.arn
   runtime     = "go1.x"
-  memory_size = 128
-  timeout     = 1
+  memory_size = 256
+  timeout     = 30
 }
 resource "aws_apigatewayv2_api" "covidAPI" {
   name          = "covid-api"
