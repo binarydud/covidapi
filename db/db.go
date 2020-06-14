@@ -23,7 +23,7 @@ const usTableName = "CovidUS"
 func New() *DB {
 	mySession := session.Must(session.NewSession())
 
-	svc := dynamodb.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
+	svc := dynamodb.New(mySession, aws.NewConfig().WithRegion("us-east-2"))
 	db := &DB{
 		svc: svc,
 	}
@@ -84,4 +84,41 @@ func (db *DB) GetStates() ([]types.State, error) {
 		return records, err
 	}
 	return records, nil
+}
+func (db *DB) GetStateCurrent(name string) (*types.State, error) {
+	states, err := db.GetStateHistorical(name)
+	if err != nil {
+		return nil, err
+	}
+	state := states[len(states)-1]
+	return &state, nil
+}
+func (db *DB) GetStateHistorical(name string) ([]types.State, error) {
+	svc := db.svc
+	params := &dynamodb.QueryInput{
+		TableName:              aws.String(stateTableName),
+		KeyConditionExpression: aws.String("state = :s"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":s": {
+				S: aws.String(name),
+			},
+		},
+	}
+	records := make([]types.State, 0)
+	err := svc.QueryPages(params, func(page *dynamodb.QueryOutput, lastPage bool) bool {
+		recs := []types.State{}
+
+		err := dynamodbattribute.UnmarshalListOfMaps(page.Items, &recs)
+		if err != nil {
+			panic(fmt.Sprintf("failed to unmarshal Dynamodb Scan Items, %v", err))
+		}
+
+		records = append(records, recs...)
+		return true
+	})
+	if err != nil {
+		return nil, err
+	}
+	return records, nil
+
 }

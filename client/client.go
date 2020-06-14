@@ -30,7 +30,7 @@ func Min(x, y int) int {
 	return x
 }
 func calculateUSMovingAverage(data []types.US) []types.US {
-	newData := make([]types.US, len(data), len(data))
+	newData := make([]types.US, 0)
 	for index, item := range data {
 		window := 7
 		start := Max(0, index-window)
@@ -40,9 +40,9 @@ func calculateUSMovingAverage(data []types.US) []types.US {
 		tests := movingaverage.New(window)
 		deaths := movingaverage.New(window)
 		for _, i := range previous {
-			positive.Add(float64(i.PositiveIncrease))
-			tests.Add(float64(i.TotalTestResultsIncrease))
-			deaths.Add(float64(i.NegativeIncrease))
+			positive.Add(float64(*i.PositiveIncrease))
+			tests.Add(float64(*i.TotalTestResultsIncrease))
+			deaths.Add(float64(*i.DeathIncrease))
 		}
 		item.PositiveAvg = positive.Avg()
 		item.DeathsAvg = deaths.Avg()
@@ -52,7 +52,8 @@ func calculateUSMovingAverage(data []types.US) []types.US {
 	return newData
 }
 func calculateStateMovingAverage(data []types.State) []types.State {
-	newData := make([]types.State, len(data), len(data))
+	newData := make([]types.State, 0)
+
 	for index, item := range data {
 		window := 7
 		start := Max(0, index-window)
@@ -62,9 +63,9 @@ func calculateStateMovingAverage(data []types.State) []types.State {
 		tests := movingaverage.New(window)
 		deaths := movingaverage.New(window)
 		for _, i := range previous {
-			positive.Add(float64(i.PositiveIncrease))
-			tests.Add(float64(i.TotalTestResultsIncrease))
-			deaths.Add(float64(i.NegativeIncrease))
+			positive.Add(float64(*i.PositiveIncrease))
+			tests.Add(float64(*i.TotalTestResultsIncrease))
+			deaths.Add(float64(*i.DeathIncrease))
 		}
 		item.PositiveAvg = positive.Avg()
 		item.DeathsAvg = deaths.Avg()
@@ -101,16 +102,23 @@ func (client *HttpClient) ByStates() ([]types.State, error) {
 	var items []types.State
 
 	err = json.NewDecoder(resp.Body).Decode(&items)
+
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].Date < items[j].Date
 	})
+	log.Printf("states %v", len(items))
+
 	m := make(map[string][]types.State)
 	for _, i := range items {
 		m[i.State] = append(m[i.State], i)
 	}
-	newStates := make([]types.State, len(items), len(items))
+
+	newStates := make([]types.State, 0)
+
 	for _, values := range m {
+
 		avgs := calculateStateMovingAverage(values)
+
 		newStates = append(newStates, avgs...)
 	}
 
@@ -122,11 +130,10 @@ func (client *HttpClient) ByStates() ([]types.State, error) {
 func (client *HttpClient) ByNational() ([]types.US, error) {
 	///api/v1/us/daily.json
 	url := client.URL + "/api/v1/us/daily.json"
-	log.Printf("calling stuff")
 
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Printf("error")
+
 		return nil, err
 	}
 	var items []types.US

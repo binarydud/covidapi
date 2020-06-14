@@ -1,4 +1,5 @@
 package router
+
 import (
 	"net/http"
 	"time"
@@ -38,6 +39,10 @@ func NewRouter(log zerolog.Logger) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Use(middleware.Timeout(60 * time.Second))
-	r.Get("/health",handlers.HealthHandler)
+	r.Get("/health", handlers.HealthHandler)
+	r.Get("/us/current", handlers.USHandler)
+	r.Get("/us/daily", handlers.USHistoricalHandler)
+	r.Get("/states/{state}/current", handlers.USHandler)
+	r.Get("/states/{state}/daily", handlers.USHistoricalHandler)
 	return r
 }

@@ -88,6 +88,27 @@ resource "aws_iam_policy" "lambda_logging" {
 }
 EOF
 }
+data "aws_iam_policy_document" "dynamoPut" {
+  statement {
+    actions = [
+      "dynamodb:PutItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.covid-state-table.arn,
+      aws_dynamodb_table.covid-us-table.arn
+    ]
+  }
+}
+resource "aws_iam_policy" "tablePolicy" {
+  name   = "covidTablePolicy"
+  path   = "/"
+  policy = "${data.aws_iam_policy_document.dynamoPut.json}"
+}
+resource "aws_iam_role_policy_attachment" "cache_dynamo" {
+  role       = aws_iam_role.cacheRole.name
+  policy_arn = aws_iam_policy.tablePolicy.arn
+}
 resource "aws_iam_role_policy_attachment" "cache_logs" {
   role       = aws_iam_role.apiRole.name
   policy_arn = aws_iam_policy.lambda_logging.arn
@@ -119,7 +140,7 @@ resource "aws_lambda_function" "covidCache" {
   role        = aws_iam_role.cacheRole.arn
   runtime     = "go1.x"
   memory_size = 128
-  timeout     = 1
+  timeout     = 30
 }
 resource "aws_s3_bucket_object" "api_deployment" {
   bucket = aws_s3_bucket.deployment_bucket.id
