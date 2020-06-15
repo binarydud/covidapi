@@ -17,7 +17,7 @@ func updateToday(ctx context.Context) error {
 		Timestamp().
 		Str("role", "covid processor").
 		Logger()
-	http := client.NewClient()
+	http := client.New()
 	items, err := http.ByNational()
 	if err != nil {
 
@@ -51,7 +51,7 @@ func handleRequest(ctx context.Context) error {
 		Timestamp().
 		Str("role", "covid processor").
 		Logger()
-	http := client.NewClient()
+	http := client.New()
 	logger.Info().Msg("calling national client")
 	items, err := http.ByNational()
 	if err != nil {

@@ -5,16 +5,17 @@ import (
 	"log"
 	"net/http"
 	"sort"
-	"time"
 
 	movingaverage "github.com/RobinUS2/golang-moving-average"
 	"github.com/binarydud/covidapi/types"
 )
 
-type HttpClient struct {
+// HTTPClient for covidtracking.com
+type HTTPClient struct {
 	URL string
 }
 
+// Max returns the larger of x or y
 func Max(x, y int) int {
 	if x < y {
 		return y
@@ -75,23 +76,14 @@ func calculateStateMovingAverage(data []types.State) []types.State {
 	return newData
 }
 
-func NewClient() *HttpClient {
-	client := &HttpClient{URL: "https://covidtracking.com"}
+// New creates new http client for covidtracking
+func New() *HTTPClient {
+	client := &HTTPClient{URL: "https://covidtracking.com"}
 	return client
 }
 
-type State struct {
-	DateChecked  time.Time `json:"dateChecked"`
-	DateModified string    `json:"dateModified"`
-	Death        int       `json:"death"`
-	Hospitalized int       `json:"hospitalized"`
-	Negative     int       `json:"negative"`
-	Positive     int       `json:"positive"`
-	Total        int       `json:"total"`
-	Province     string    `json:"state"`
-}
-
-func (client *HttpClient) ByStates() ([]types.State, error) {
+// ByStates ...
+func (client *HTTPClient) ByStates() ([]types.State, error) {
 	// /api/v1/states/daily.json
 	url := client.URL + "/api/v1/states/daily.json"
 
@@ -127,8 +119,9 @@ func (client *HttpClient) ByStates() ([]types.State, error) {
 	}
 	return newStates, nil
 }
-func (client *HttpClient) ByNational() ([]types.US, error) {
-	///api/v1/us/daily.json
+
+// ByNational ...
+func (client *HTTPClient) ByNational() ([]types.US, error) {
 	url := client.URL + "/api/v1/us/daily.json"
 
 	resp, err := http.Get(url)
