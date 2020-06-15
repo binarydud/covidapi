@@ -170,7 +170,7 @@ resource "aws_apigatewayv2_api" "covidAPI" {
   name          = "covid-api"
   protocol_type = "HTTP"
   cors_configuration {
-    allow_origins = ["*"]
+    allow_origins = ["http://covidcharts.dev.cloudadaptr.com", "http://localhost:3000"]
     allow_methods = ["*"]
     allow_headers = ["*"]
   }
@@ -226,4 +226,21 @@ resource "aws_route53_record" "api" {
     name                   = aws_apigatewayv2_domain_name.covidapi.domain_name_configuration[0].target_domain_name
     zone_id                = aws_apigatewayv2_domain_name.covidapi.domain_name_configuration[0].hosted_zone_id
   }
+}
+
+resource "aws_cloudwatch_event_rule" "load_data_hourly" {
+  name                = "load-from-tracking"
+  schedule_expression = "rate(30 minutes)"
+}
+resource "aws_lambda_permission" "allow_cloudwatch" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.covidCache.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.load_data_hourly.arn
+}
+resource "aws_cloudwatch_event_target" "lambda" {
+  rule      = aws_cloudwatch_event_rule.load_data_hourly.name
+  target_id = "SendToLambda"
+  arn       = aws_lambda_function.covidCache.arn
 }
