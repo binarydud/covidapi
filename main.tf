@@ -219,7 +219,7 @@ resource "aws_apigatewayv2_api_mapping" "apimapping" {
 resource "aws_route53_record" "api" {
   name    = "covidapi.dev.cloudadaptr.com"
   type    = "A"
-  zone_id = var.hosted_zone
+  zone_id = var.hostedzone
 
   alias {
     evaluate_target_health = true
