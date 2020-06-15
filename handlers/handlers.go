@@ -9,7 +9,6 @@ import (
 	"github.com/binarydud/covidapi/db"
 	"github.com/go-chi/chi"
 	"github.com/rs/zerolog/hlog"
-	"github.com/rs/zerolog/log"
 )
 
 type dBKeyID string
@@ -107,6 +106,7 @@ func USHandler(w http.ResponseWriter, r *http.Request) {
 
 // USHistoricalHandler ...
 func USHistoricalHandler(w http.ResponseWriter, r *http.Request) {
+	log := hlog.FromRequest(r)
 	dbclient := dbFromRequest(r)
 	log.Info().Msg("Getting historical US data")
 	values, err := dbclient.GetUSHistorical()
@@ -117,6 +117,24 @@ func USHistoricalHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	body, err := json.Marshal(values)
+	if err != nil {
+		log.Err(err).Msg("error encoding records")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(body)
+}
+
+// StatesDailyHandler ...
+func StatesDailyHandler(w http.ResponseWriter, r *http.Request) {
+	log := hlog.FromRequest(r)
+	dbclient := dbFromRequest(r)
+	states, err := dbclient.GetStatesDaily()
+	if err != nil {
+		log.Err(err).Msg("error getting states records")
+	}
+	body, err := json.Marshal(states)
 	if err != nil {
 		log.Err(err).Msg("error encoding records")
 		w.WriteHeader(http.StatusInternalServerError)

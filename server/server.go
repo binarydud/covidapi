@@ -15,9 +15,11 @@ func main() {
 		Timestamp().
 		Str("role", "dev").
 		Logger()
-	log.Info().Msg("api gateway")
+
+	port := ":5000"
+	log.Info().Str("port", port).Msg("api gateway")
 	r := router.NewRouter(log)
 
-	http.ListenAndServe(":5000", r)
+	http.ListenAndServe(port, r)
 
 }

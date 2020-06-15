@@ -153,3 +153,33 @@ func (db *DB) GetStateHistorical(name string) ([]types.State, error) {
 	return records, nil
 
 }
+
+// GetStatesDaily ...
+func (db *DB) GetStatesDaily() ([]types.State, error) {
+	svc := db.svc
+	var records []types.State
+
+	err := svc.ScanPages(&dynamodb.ScanInput{
+		TableName: aws.String(stateTableName),
+	}, func(page *dynamodb.ScanOutput, last bool) bool {
+		recs := []types.State{}
+
+		err := dynamodbattribute.UnmarshalListOfMaps(page.Items, &recs)
+		if err != nil {
+			panic(fmt.Sprintf("failed to unmarshal Dynamodb Scan Items, %v", err))
+		}
+
+		records = append(records, recs...)
+
+		return true // keep paging
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(records, func(i, j int) bool {
+		return records[i].Date < records[j].Date
+	})
+
+	return records, nil
+}
