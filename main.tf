@@ -170,7 +170,7 @@ resource "aws_apigatewayv2_api" "covidAPI" {
   name          = "covid-api"
   protocol_type = "HTTP"
   cors_configuration {
-    allow_origins = ["http://covidcharts.dev.cloudadaptr.com", "http://localhost:3000"]
+    allow_origins = ["https://covidcharts.dev.cloudadaptr.com", "http://localhost:3000"]
     allow_methods = ["*"]
     allow_headers = ["*"]
   }
