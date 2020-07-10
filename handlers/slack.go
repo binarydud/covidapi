@@ -74,22 +74,33 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 	attachments = append(attachments, slack.Attachment{
 		Text: fmt.Sprintf("Average Daily Fatality Count %f", item.DeathsAvg),
 	})
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Average Percentage of positive tests %f", item.PercentagePositive),
-	})
+	/*
+		attachments = append(attachments, slack.Attachment{
+			Text: fmt.Sprintf("Average Percentage of positive tests %f", item.PercentagePositive),
+		})
+	*/
 	attachments = append(attachments, slack.Attachment{
 		Text: fmt.Sprintf("Most recent daily stats for %s", item.State),
 	})
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Most recent day's positive tests %d", *item.PositiveIncrease),
+		Text: fmt.Sprintf("Daily Positive tests %d", *item.PositiveIncrease),
 	})
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Most recent day's fatalities %d", *item.DeathIncrease),
+		Text: fmt.Sprintf("Daily tests %d", *item.TotalTestResultsIncrease),
+	})
+	attachments = append(attachments, slack.Attachment{
+		Text: fmt.Sprintf("Daily fatalities %d", *item.DeathIncrease),
 	})
 	newPositiveCases := *item.PositiveIncrease
 	newTests := *item.TotalTestResultsIncrease
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Most recent day's percentage of tests that are positive %f", float64(newPositiveCases/newTests)),
+		Text: fmt.Sprintf("Percentage of tests that are positive %f", float64(newPositiveCases/newTests)),
+	})
+	attachments = append(attachments, slack.Attachment{
+		Text: fmt.Sprintf("Total stats for %s", item.State),
+	})
+	attachments = append(attachments, slack.Attachment{
+		Text: fmt.Sprintf("Positive Cases %d", *item.Positive),
 	})
 
 	/*
