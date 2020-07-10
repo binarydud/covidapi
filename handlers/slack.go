@@ -93,6 +93,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	newPositiveCases := *item.PositiveIncrease
 	newTests := *item.TotalTestResultsIncrease
+	log.Info().Float64("percentage", float64(newPositiveCases/newTests)).Msg("checking percentage")
 	attachments = append(attachments, slack.Attachment{
 		Text: fmt.Sprintf("Percentage of tests that are positive %f", float64(newPositiveCases/newTests)),
 	})
