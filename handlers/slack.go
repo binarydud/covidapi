@@ -89,6 +89,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 	)
 	message.Hidden = false
 	message.DeleteOriginal = false
+	message.ResponseType = slack.ResponseTypeInChannel
 	//message := &slack.Msg{ResponseType: slack.ResponseTypeInChannel, Attachments: attachments, Text: fmt.Sprintf("Covid stats %s", item.State)}
 
 	body, err := json.Marshal(message)
