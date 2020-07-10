@@ -89,6 +89,7 @@ func calculateStateMovingAverage(data []types.State) []types.State {
 }
 func calculateForStateWindow(data []types.State) types.State {
 	window := 7
+
 	positive := movingaverage.New(window)
 	tests := movingaverage.New(window)
 	deaths := movingaverage.New(window)
@@ -204,12 +205,17 @@ func (client *HTTPClient) ByState(state string) (*types.State, error) {
 	if err != nil {
 		return nil, err
 	}
-	last := len(items) - 1
-	first := Max(0, last-7)
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Date < items[j].Date
+	})
+	index := len(items) - 1
+	window := 7
+	start := Max(0, index-window)
+	end := Min(len(items), index+1)
+	previous := items[start:end]
+	// lastWeek := items[first:last]
 
-	lastWeek := items[first:last]
-
-	item := calculateForStateWindow(lastWeek)
+	item := calculateForStateWindow(previous)
 	positive := Max(0, *item.PositiveIncrease)
 	deaths := Max(0, *item.DeathIncrease)
 	tests := Max(0, *item.TotalTestResultsIncrease)
