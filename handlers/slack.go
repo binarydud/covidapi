@@ -56,6 +56,13 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// loc, _ := time.LoadLocation("America/Chicago")
+	log.Info().
+		Str("state", state).
+		Int("PositiveCases", *item.PositiveIncrease).
+		Int("Tests", *item.TotalTestResultsIncrease).
+		Float64("PostiveAVG", item.PositiveAvg).
+		Msg("state data")
+
 	attachments := []slack.Attachment{}
 
 	attachments = append(attachments, slack.Attachment{
@@ -71,10 +78,13 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 		Text: fmt.Sprintf("Average Percentage of positive tests %f", item.PercentagePositive),
 	})
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Most recent day's positive tests %d", item.PositiveIncrease),
+		Text: fmt.Sprintf("Most recent daily stats for %s", item.State),
 	})
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Most recent day's fatalities %d", item.DeathIncrease),
+		Text: fmt.Sprintf("Most recent day's positive tests %d", *item.PositiveIncrease),
+	})
+	attachments = append(attachments, slack.Attachment{
+		Text: fmt.Sprintf("Most recent day's fatalities %d", *item.DeathIncrease),
 	})
 	newPositiveCases := *item.PositiveIncrease
 	newTests := *item.TotalTestResultsIncrease
