@@ -45,6 +45,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info().
 		Str("user", s.UserID).
 		Str("status", "ok").
+		Str("state", s.Text).
 		Msg("parsed command")
 	state := s.Text
 	client := client.New()

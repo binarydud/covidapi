@@ -195,6 +195,7 @@ func (client *HTTPClient) ByNational() ([]types.US, error) {
 // ByState ...
 func (client *HTTPClient) ByState(state string) (*types.State, error) {
 	url := fmt.Sprintf("%s/api/v1/states/%s/daily.json", client.URL, state)
+	log.Print(url)
 	resp, err := http.Get(url)
 	var items []types.State
 
