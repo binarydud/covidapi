@@ -94,8 +94,8 @@ func calculateForStateWindow(data []types.State) types.State {
 	percentPositive := movingaverage.New(window)
 	item := data[len(data)-1]
 	for _, i := range data {
-		newPositiveCases := *i.PositiveIncrease
-		newTests := *i.TotalTestResultsIncrease
+		newPositiveCases := Max(0, *i.PositiveIncrease)
+		newTests := Max(0, *i.TotalTestResultsIncrease)
 		positive.Add(float64(newPositiveCases))
 		tests.Add(float64(newTests))
 		deaths.Add(float64(*i.DeathIncrease))
