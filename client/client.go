@@ -101,7 +101,7 @@ func calculateForStateWindow(data []types.State) types.State {
 		positive.Add(float64(newPositiveCases))
 		tests.Add(float64(newTests))
 		deaths.Add(float64(*i.DeathIncrease))
-		percentPositive.Add(float64(newPositiveCases / newTests))
+		percentPositive.Add(float64(newPositiveCases) / float64(newTests) * 100)
 	}
 	item.PositiveAvg = positive.Avg()
 	item.DeathsAvg = deaths.Avg()

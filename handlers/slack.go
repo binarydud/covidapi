@@ -66,7 +66,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 	attachments := []slack.Attachment{}
 
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("7 day averages for %s", item.State),
+		Text: fmt.Sprintf("7 day trailing averages for %s", item.State),
 	})
 	attachments = append(attachments, slack.Attachment{
 		Text: fmt.Sprintf("Average Postive Case Count %f", item.PositiveAvg),
@@ -80,7 +80,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	*/
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Most recent daily stats for %s", item.State),
+		Text: "Most recent daily stats",
 	})
 	attachments = append(attachments, slack.Attachment{
 		Text: fmt.Sprintf("Daily Positive tests %d", *item.PositiveIncrease),
@@ -93,12 +93,13 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	newPositiveCases := *item.PositiveIncrease
 	newTests := *item.TotalTestResultsIncrease
+	percent := float64(newPositiveCases) / float64(newTests) * 100
 	log.Info().Float64("percentage", float64(newPositiveCases/newTests)).Msg("checking percentage")
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Percentage of tests that are positive %f", float64(newPositiveCases/newTests)),
+		Text: fmt.Sprintf("Percentage of tests that are positive %f", percent),
 	})
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Total stats for %s", item.State),
+		Text: "Total stats",
 	})
 	attachments = append(attachments, slack.Attachment{
 		Text: fmt.Sprintf("Positive Cases %d", *item.Positive),
@@ -113,7 +114,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 			attachments = append(attachments, attachment)
 		}
 	*/
-	message := &slack.Msg{ResponseType: slack.ResponseTypeInChannel, Attachments: attachments, Text: "Covid stats"}
+	message := &slack.Msg{ResponseType: slack.ResponseTypeInChannel, Attachments: attachments, Text: fmt.Sprintf("Covid stats %s", state)}
 
 	body, err := json.Marshal(message)
 	if err != nil {
