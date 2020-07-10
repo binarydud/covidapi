@@ -66,7 +66,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 	attachments := []slack.Attachment{}
 
 	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("7 day trailing averages for %s", item.State),
+		Text: "7 day trailing averages",
 	})
 	attachments = append(attachments, slack.Attachment{
 		Text: fmt.Sprintf("Average Postive Case Count %f", item.PositiveAvg),
@@ -74,11 +74,11 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 	attachments = append(attachments, slack.Attachment{
 		Text: fmt.Sprintf("Average Daily Fatality Count %f", item.DeathsAvg),
 	})
-	/*
-		attachments = append(attachments, slack.Attachment{
-			Text: fmt.Sprintf("Average Percentage of positive tests %f", item.PercentagePositive),
-		})
-	*/
+
+	attachments = append(attachments, slack.Attachment{
+		Text: fmt.Sprintf("Average Percentage of positive tests %f", item.PercentagePositive),
+	})
+
 	attachments = append(attachments, slack.Attachment{
 		Text: "Most recent daily stats",
 	})
@@ -114,7 +114,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 			attachments = append(attachments, attachment)
 		}
 	*/
-	message := &slack.Msg{ResponseType: slack.ResponseTypeInChannel, Attachments: attachments, Text: fmt.Sprintf("Covid stats %s", state)}
+	message := &slack.Msg{ResponseType: slack.ResponseTypeInChannel, Attachments: attachments, Text: fmt.Sprintf("Covid stats %s", item.State)}
 
 	body, err := json.Marshal(message)
 	if err != nil {
