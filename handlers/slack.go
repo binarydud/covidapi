@@ -64,7 +64,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 		Msg("state data")
 
 	//attachments := []slack.Attachment{}
-	headerText := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Covid Stats for%s*", item.State), false, false)
+	headerText := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Covid Stats for %s*", item.State), false, false)
 	headerSection := slack.NewSectionBlock(headerText, nil, nil)
 	avgText := fmt.Sprintf("*7 day trailing averages*\nAverage Positive Case Count %f\nAverage Daily Fatality Count %f\nAverage Percentage of positive tests %f\n", item.PositiveAvg, item.DeathsAvg, item.PercentagePositive)
 	averagesText := slack.NewTextBlockObject("mrkdwn", avgText, false, false)
@@ -113,7 +113,7 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 			Text: fmt.Sprintf("Percentage of tests that are positive %f", percent),
 		})
 	*/
-	totalText := fmt.Sprintf("*Total stats*\nPositive Cases %d", *item.Positive)
+	totalText := fmt.Sprintf("*Total stats*\nPositive Cases %d\nFatalities %d", *item.Positive, *item.Death)
 	totalTextBlock := slack.NewTextBlockObject("mrkdwn", totalText, false, false)
 	totalSection := slack.NewSectionBlock(totalTextBlock, nil, nil)
 	/*
