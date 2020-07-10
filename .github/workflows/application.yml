@@ -78,6 +78,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           TF_VAR_certificate: ${{ secrets.CERT_ARN }}
           TF_VAR_hostedzone: ${{ secrets.HOSTED_ZONE }}
+          TF_VAR_clientid: ${{ secrets.SLACK_CLIENT_ID}}
+          TF_VAR_clientsecret: ${{ secrets.SLACK_CLIENT_SECRET }}
 
         # On push to master, build or change infrastructure according to Terraform configuration files
         # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
@@ -89,3 +91,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           TF_VAR_certificate: ${{ secrets.CERT_ARN }}
           TF_VAR_hostedzone: ${{ secrets.HOSTED_ZONE }}
+          TF_VAR_clientid: ${{ secrets.SLACK_CLIENT_ID}}
+          TF_VAR_clientsecret: ${{ secrets.SLACK_CLIENT_SECRET }}

@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -29,6 +30,16 @@ func Min(x, y int) int {
 		return y
 	}
 	return x
+}
+func calculateUSPercentagePositive(data []types.US) []types.US {
+	newData := make([]types.US, 0)
+	for _, i := range data {
+		newPositiveCases := *i.PositiveIncrease
+		newTests := *i.TotalTestResultsIncrease
+		i.PercentagePositive = float64(newPositiveCases / newTests)
+		newData = append(newData, i)
+	}
+	return newData
 }
 func calculateUSMovingAverage(data []types.US) []types.US {
 	newData := make([]types.US, 0)
@@ -75,6 +86,27 @@ func calculateStateMovingAverage(data []types.State) []types.State {
 	}
 	return newData
 }
+func calculateForStateWindow(data []types.State) types.State {
+	window := 7
+	positive := movingaverage.New(window)
+	tests := movingaverage.New(window)
+	deaths := movingaverage.New(window)
+	percentPositive := movingaverage.New(window)
+	item := data[len(data)-1]
+	for _, i := range data {
+		newPositiveCases := *i.PositiveIncrease
+		newTests := *i.TotalTestResultsIncrease
+		positive.Add(float64(newPositiveCases))
+		tests.Add(float64(newTests))
+		deaths.Add(float64(*i.DeathIncrease))
+		percentPositive.Add(float64(newPositiveCases / newTests))
+	}
+	item.PositiveAvg = positive.Avg()
+	item.DeathsAvg = deaths.Avg()
+	item.TestsAvg = tests.Avg()
+	item.PercentagePositive = percentPositive.Avg()
+	return item
+}
 
 // New creates new http client for covidtracking
 func New() *HTTPClient {
@@ -102,6 +134,14 @@ func (client *HTTPClient) ByStates() ([]types.State, error) {
 
 	m := make(map[string][]types.State)
 	for _, i := range items {
+
+		positive := Max(0, *i.PositiveIncrease)
+		deaths := Max(0, *i.DeathIncrease)
+		tests := Max(0, *i.TotalTestResultsIncrease)
+		i.PositiveIncrease = &positive
+		i.DeathIncrease = &deaths
+		i.TotalTestResultsIncrease = &tests
+
 		m[i.State] = append(m[i.State], i)
 	}
 
@@ -136,10 +176,43 @@ func (client *HTTPClient) ByNational() ([]types.US, error) {
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].Date < items[j].Date
 	})
+	for i, item := range items {
+		positive := Max(0, *item.PositiveIncrease)
+		deaths := Max(0, *item.DeathIncrease)
+		tests := Max(0, *item.TotalTestResultsIncrease)
+		items[i].PositiveIncrease = &positive
+		items[i].DeathIncrease = &deaths
+		items[i].TotalTestResultsIncrease = &tests
+	}
 
 	if err != nil {
 		return nil, err
 	}
 	items = calculateUSMovingAverage(items)
 	return items, nil
+}
+
+// ByState ...
+func (client *HTTPClient) ByState(state string) (*types.State, error) {
+	url := fmt.Sprintf("%s/api/v1/states/%s/daily.json", client.URL, state)
+	resp, err := http.Get(url)
+	var items []types.State
+
+	err = json.NewDecoder(resp.Body).Decode(&items)
+	if err != nil {
+		return nil, err
+	}
+	last := len(items) - 1
+	first := Max(0, last-7)
+
+	lastWeek := items[first:last]
+
+	item := calculateForStateWindow(lastWeek)
+	positive := Max(0, *item.PositiveIncrease)
+	deaths := Max(0, *item.DeathIncrease)
+	tests := Max(0, *item.TotalTestResultsIncrease)
+	item.PositiveIncrease = &positive
+	item.DeathIncrease = &deaths
+	item.TotalTestResultsIncrease = &tests
+	return &item, nil
 }

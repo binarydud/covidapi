@@ -165,6 +165,12 @@ resource "aws_lambda_function" "covidAPIv2" {
   runtime     = "go1.x"
   memory_size = 256
   timeout     = 30
+  environment {
+    variables = {
+      CLIENTID     = var.clientid
+      CLIENTSECRET = var.clientsecret
+    }
+  }
 }
 resource "aws_apigatewayv2_api" "covidAPI" {
   name          = "covid-api"

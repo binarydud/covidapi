@@ -41,6 +41,8 @@ func NewRouter(log zerolog.Logger) *chi.Mux {
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(handlers.DBMiddleware)
 	r.Get("/health", handlers.HealthHandler)
+	r.Post("/slack", handlers.CommandHandler)
+	r.Get("/authorize", handlers.AuthorizeHandler)
 	r.Get("/us/current", handlers.USHandler)
 	r.Get("/us/daily", handlers.USHistoricalHandler)
 	r.Get("/states/{state}/current", handlers.StateHandler)
