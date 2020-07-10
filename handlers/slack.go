@@ -63,47 +63,67 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 		Float64("PostiveAVG", item.PositiveAvg).
 		Msg("state data")
 
-	attachments := []slack.Attachment{}
+	//attachments := []slack.Attachment{}
+	headerText := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("*Covid Stats for%s*", item.State), false, false)
+	headerSection := slack.NewSectionBlock(headerText, nil, nil)
+	avgText := fmt.Sprintf("*7 day trailing averages*\nAverage Positive Case Count %f\nAverage Daily Fatality Count %f\nAverage Percentage of positive tests %f\n", item.PositiveAvg, item.DeathsAvg, item.PercentagePositive)
+	averagesText := slack.NewTextBlockObject("mrkdwn", avgText, false, false)
+	averagesSection := slack.NewSectionBlock(averagesText, nil, nil)
 
-	attachments = append(attachments, slack.Attachment{
-		Text: "7 day trailing averages",
-	})
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Average Postive Case Count %f", item.PositiveAvg),
-	})
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Average Daily Fatality Count %f", item.DeathsAvg),
-	})
-
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Average Percentage of positive tests %f", item.PercentagePositive),
-	})
-
-	attachments = append(attachments, slack.Attachment{
-		Text: "Most recent daily stats",
-	})
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Daily Positive tests %d", *item.PositiveIncrease),
-	})
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Daily tests %d", *item.TotalTestResultsIncrease),
-	})
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Daily fatalities %d", *item.DeathIncrease),
-	})
 	newPositiveCases := *item.PositiveIncrease
 	newTests := *item.TotalTestResultsIncrease
 	percent := float64(newPositiveCases) / float64(newTests) * 100
-	log.Info().Float64("percentage", float64(newPositiveCases/newTests)).Msg("checking percentage")
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Percentage of tests that are positive %f", percent),
-	})
-	attachments = append(attachments, slack.Attachment{
-		Text: "Total stats",
-	})
-	attachments = append(attachments, slack.Attachment{
-		Text: fmt.Sprintf("Positive Cases %d", *item.Positive),
-	})
+	dailyText := fmt.Sprintf("*Most recent daily stats*\nDaily Positive tests %d\nDaily tests %d\nDaily fatalities %d\nPercentage of tests that are positive %f", newPositiveCases, newTests, *item.DeathIncrease, percent)
+	dailyTextBlock := slack.NewTextBlockObject("mrkdwn", dailyText, false, false)
+	dailySection := slack.NewSectionBlock(dailyTextBlock, nil, nil)
+	/*
+		attachments = append(attachments, slack.Attachment{
+			Text: "7 day trailing averages",
+		})
+		attachments = append(attachments, slack.Attachment{
+			Text: fmt.Sprintf("Average Postive Case Count %f", item.PositiveAvg),
+		})
+		attachments = append(attachments, slack.Attachment{
+			Text: fmt.Sprintf("Average Daily Fatality Count %f", item.DeathsAvg),
+		})
+
+		attachments = append(attachments, slack.Attachment{
+			Text: fmt.Sprintf("Average Percentage of positive tests %f", item.PercentagePositive),
+		})
+	*/
+	/*
+			attachments = append(attachments, slack.Attachment{
+				Text: "Most recent daily stats",
+			})
+			attachments = append(attachments, slack.Attachment{
+				Text: fmt.Sprintf("Daily Positive tests %d", *item.PositiveIncrease),
+			})
+			attachments = append(attachments, slack.Attachment{
+				Text: fmt.Sprintf("Daily tests %d", *item.TotalTestResultsIncrease),
+			})
+			attachments = append(attachments, slack.Attachment{
+				Text: fmt.Sprintf("Daily fatalities %d", *item.DeathIncrease),
+			})
+
+		newPositiveCases := *item.PositiveIncrease
+		newTests := *item.TotalTestResultsIncrease
+		percent := float64(newPositiveCases) / float64(newTests) * 100
+		log.Info().Float64("percentage", float64(newPositiveCases/newTests)).Msg("checking percentage")
+		attachments = append(attachments, slack.Attachment{
+			Text: fmt.Sprintf("Percentage of tests that are positive %f", percent),
+		})
+	*/
+	totalText := fmt.Sprintf("*Total stats*\nPositive Cases %d", *item.Positive)
+	totalTextBlock := slack.NewTextBlockObject("mrkdwn", totalText, false, false)
+	totalSection := slack.NewSectionBlock(totalTextBlock, nil, nil)
+	/*
+		attachments = append(attachments, slack.Attachment{
+			Text: "Total stats",
+		})
+		attachments = append(attachments, slack.Attachment{
+			Text: fmt.Sprintf("Positive Cases %d", *item.Positive),
+		})
+	*/
 
 	/*
 		for _, state := range items {
@@ -114,7 +134,14 @@ func CommandHandler(w http.ResponseWriter, r *http.Request) {
 			attachments = append(attachments, attachment)
 		}
 	*/
-	message := &slack.Msg{ResponseType: slack.ResponseTypeInChannel, Attachments: attachments, Text: fmt.Sprintf("Covid stats %s", item.State)}
+	message := slack.NewBlockMessage(
+		headerSection,
+		slack.NewDividerBlock(),
+		averagesSection,
+		dailySection,
+		totalSection,
+	)
+	//message := &slack.Msg{ResponseType: slack.ResponseTypeInChannel, Attachments: attachments, Text: fmt.Sprintf("Covid stats %s", item.State)}
 
 	body, err := json.Marshal(message)
 	if err != nil {
